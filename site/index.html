@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Radar de Concursos</title>
+<meta name="description" content="Concursos administrativos de nível médio do Ceará e nacionais, atualizados toda segunda.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: mesa de trabalho — coluna fixa de filtros e prazos à esquerda, fichas dos concursos à direita; tudo empilha no celular. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --surface-2: #f6f8fa;
+  --ink: #15202b;
+  --muted: #5b6774;
+  --line: #d6dde4;
+  --accent: #1e3f8f;
+  --accent-soft: #e3e9f7;
+  --stamp: #5a3fb0;
+  --urgent: #b42318;
+  --urgent-soft: #fde8e6;
+  --warn: #a15c07;
+  --warn-soft: #fdf0dc;
+  --ok: #067647;
+  --ok-soft: #e1f5ea;
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --surface: #161d26; --surface-2: #1b2430; --ink: #e6ebf1; --muted: #9ba7b4; --line: #2a3542;
+    --accent: #93b1ff; --accent-soft: #1f2b47; --stamp: #b9a8ff;
+    --urgent: #ff8f80; --urgent-soft: #3a1d1b; --warn: #f3b562; --warn-soft: #3a2b16; --ok: #62d39c; --ok-soft: #15301f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --surface: #161d26; --surface-2: #1b2430; --ink: #e6ebf1; --muted: #9ba7b4; --line: #2a3542;
+  --accent: #93b1ff; --accent-soft: #1f2b47; --stamp: #b9a8ff;
+  --urgent: #ff8f80; --urgent-soft: #3a1d1b; --warn: #f3b562; --warn-soft: #3a2b16; --ok: #62d39c; --ok-soft: #15301f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+  display: grid;
+  gap: 24px;
+}
+
+/* Cabeçalho */
+.masthead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.masthead h1 { font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: clamp(28px, 4vw, 40px); line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.masthead .sub { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.update-box { font-family: var(--font-data); font-size: 12.5px; color: var(--muted); text-align: right; display: grid; gap: 2px; }
+.update-box strong { color: var(--ink); font-weight: 600; }
+
+.news { background: var(--accent-soft); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.news .label { font-family: var(--font-data); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--accent); }
+.news p { margin: 0; flex: 1 1 320px; min-width: 0; }
+
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Coluna lateral */
+.side { display: grid; gap: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+@media (max-width: 900px) { .side { position: static; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
+.panel h2 { font-family: var(--font-display); font-stretch: 112%; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .09em; margin: 0; color: var(--muted); }
+.field { display: grid; gap: 4px; }
+.field label, .field .lbl { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.field input[type="search"], .field input[type="number"], .field select, textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2);
+}
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer; }
+
+.deadlines { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.deadlines li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; align-items: center; }
+.cal { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; text-align: center; font-family: var(--font-data); background: var(--surface-2); }
+.cal .m { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; padding: 1px 0; background: var(--ink); color: var(--surface); }
+.cal .d { display: block; font-size: 19px; font-weight: 600; line-height: 1.4; }
+.deadlines .what { font-size: 13.5px; line-height: 1.35; min-width: 0; }
+.deadlines .what b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.deadlines .what span { color: var(--muted); font-size: 12.5px; }
+.count { font-family: var(--font-data); font-size: 12px; font-weight: 600; }
+.count.urgent { color: var(--urgent); }
+.count.warn { color: var(--warn); }
+.count.calm { color: var(--muted); }
+.empty-note { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+.backup textarea { min-height: 80px; font-family: var(--font-data); font-size: 12px; resize: vertical; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 13.5px; font-weight: 600; }
+.btn.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.msg { font-size: 12.5px; color: var(--ok); margin: 0; min-height: 1.2em; }
+
+/* Lista */
+.main { display: grid; gap: 14px; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.toolbar .result { font-size: 14px; color: var(--muted); }
+.toolbar .result b { color: var(--ink); }
+.toolbar select { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+
+.ficha { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); position: relative; overflow: hidden; }
+.ficha.discarded { opacity: .55; }
+.ficha .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 20px; padding: 16px 18px; }
+@media (max-width: 640px) { .ficha .top { grid-template-columns: minmax(0, 1fr); } }
+.who { min-width: 0; display: grid; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { font-family: var(--font-data); font-size: 11.5px; font-weight: 600; letter-spacing: .03em; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.open { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.chip.soon { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.chip.planned { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.chip.closed { background: var(--surface-2); color: var(--muted); }
+.chip.new { background: var(--stamp); color: var(--surface); border-color: transparent; }
+.chip.check { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.who h3 { margin: 0; font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: 20px; line-height: 1.15; text-wrap: balance; overflow-wrap: anywhere; }
+.who .cargo { margin: 0; font-weight: 600; font-size: 15.5px; overflow-wrap: anywhere; }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13.5px; color: var(--muted); }
+.facts b { color: var(--ink); font-weight: 600; }
+.money { font-family: var(--font-data); font-weight: 600; font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.money small { font-family: var(--font-body); font-weight: 400; font-size: 12.5px; color: var(--muted); }
+
+.when { display: grid; gap: 8px; align-content: start; justify-items: end; text-align: right; min-width: 210px; }
+@media (max-width: 640px) { .when { justify-items: start; text-align: left; min-width: 0; } }
+.when .row { font-size: 13px; color: var(--muted); }
+.when .row b { font-family: var(--font-data); color: var(--ink); font-weight: 600; font-size: 13.5px; }
+.mine select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font-size: 13.5px; font-weight: 600; }
+
+.stamp {
+  display: inline-block; margin-top: 2px; pointer-events: none;
+  font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--stamp); border: 2px solid var(--stamp); border-radius: 6px; padding: 2px 10px; transform: rotate(-4deg); opacity: .85;
+}
+
+.alert { margin: 0 18px 14px; padding: 8px 12px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 13.5px; }
+
+.toggle { width: 100%; text-align: left; border: 0; border-top: 1px solid var(--line); background: var(--surface-2); padding: 9px 18px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--accent); display: flex; justify-content: space-between; gap: 10px; }
+.toggle .prog { font-family: var(--font-data); color: var(--muted); font-weight: 500; }
+.detail { padding: 16px 18px 18px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 28px; }
+@media (max-width: 760px) { .detail { grid-template-columns: minmax(0, 1fr); } }
+.detail h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 13.5px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--font-data); font-size: 13px; overflow-wrap: anywhere; }
+.obs { font-size: 13.5px; margin: 10px 0 0; color: var(--ink); }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 13.5px; font-weight: 600; }
+.materias { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.materias label { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
+.materias input { margin-top: 3px; }
+.materias .done span { text-decoration: line-through; color: var(--muted); }
+.bar { height: 6px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; margin-bottom: 10px; }
+.bar i { display: block; height: 100%; background: var(--ok); }
+.hint { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+.notes textarea { min-height: 70px; resize: vertical; font-size: 13.5px; }
+.full { grid-column: 1 / -1; }
+
+.state { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); padding: 28px 22px; text-align: center; color: var(--muted); }
+.state h3 { color: var(--ink); margin: 0 0 6px; font-family: var(--font-display); font-stretch: 112%; font-size: 18px; }
+.state p { margin: 0 auto; max-width: 56ch; }
+
+.foot { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; max-width: 90ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ficha { transition: border-color .15s ease; }
+  .ficha:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div>
+      <h1>Radar de Concursos</h1>
+      <p class="sub">Concursos de nível médio na área administrativa: do Ceará a partir de R$ 1.621 e nacionais a partir de R$ 2.500. Concursos de banco ficam de fora.</p>
+    </div>
+    <div class="update-box" id="updateBox">
+      <span>Lista atualizada toda segunda-feira</span>
+    </div>
+  </header>
+
+  <section class="news" id="news" hidden>
+    <span class="label">Novidades da semana</span>
+    <p id="newsText"></p>
+  </section>
+
+  <div class="layout">
+    <aside class="side">
+      <section class="panel" aria-labelledby="hPrazos">
+        <h2 id="hPrazos">Próximos prazos</h2>
+        <ul class="deadlines" id="deadlines"></ul>
+        <p class="empty-note" id="deadlinesEmpty" hidden>Nenhuma inscrição aberta agora. Quando um edital sair, os prazos aparecem aqui.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="hFiltros">
+        <h2 id="hFiltros">Filtros</h2>
+        <div class="field">
+          <label for="q">Buscar</label>
+          <input type="search" id="q" placeholder="Órgão, cargo ou banca">
+        </div>
+        <div class="field">
+          <span class="lbl" id="lblSit">Situação</span>
+          <div class="seg" role="group" aria-labelledby="lblSit" id="sitGroup">
+            <button type="button" data-sit="todos" aria-pressed="true">Todos</button>
+            <button type="button" data-sit="ativos" aria-pressed="false">Abertos e em breve</button>
+            <button type="button" data-sit="previstos" aria-pressed="false">Previstos</button>
+            <button type="button" data-sit="minha" aria-pressed="false">Minha lista</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="uf">Abrangência</label>
+          <select id="uf"><option value="">Ceará e nacionais</option></select>
+        </div>
+        <div class="field">
+          <label for="minSal">Salário mínimo (R$)</label>
+          <input type="number" id="minSal" min="0" step="100" value="1621">
+        </div>
+        <label class="check"><input type="checkbox" id="showUnknown" checked> Mostrar salário a confirmar</label>
+        <label class="check"><input type="checkbox" id="showDiscarded"> Mostrar descartados</label>
+      </section>
+
+      <section class="panel backup" aria-labelledby="hBackup">
+        <h2 id="hBackup">Seu progresso</h2>
+        <p class="empty-note">Suas marcações e anotações ficam salvas neste navegador. Copie um backup de vez em quando.</p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copyBackup">Copiar backup</button>
+          <button type="button" class="btn" id="openRestore">Restaurar</button>
+        </div>
+        <div id="restoreBox" hidden class="field">
+          <label for="restoreText">Cole aqui o backup copiado</label>
+          <textarea id="restoreText" spellcheck="false"></textarea>
+          <div class="btn-row"><button type="button" class="btn primary" id="doRestore">Restaurar progresso</button></div>
+        </div>
+        <textarea id="backupFallback" hidden readonly aria-label="Texto do backup"></textarea>
+        <p class="msg" id="backupMsg" role="status"></p>
+      </section>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <span class="result" id="result">Carregando concursos…</span>
+        <label>Ordenar por
+          <select id="sort">
+            <option value="prazo">Prazo mais próximo</option>
+            <option value="salario">Maior salário</option>
+            <option value="orgao">Órgão (A–Z)</option>
+          </select>
+        </label>
+      </div>
+      <div id="list"></div>
+    </main>
+  </div>
+
+  <p class="foot">A lista se atualiza sozinha toda segunda, a partir do <a href="https://www.pciconcursos.com.br/concursos/nordeste/#CE" target="_blank" rel="noopener">PCI Concursos</a>. Concursos previstos são acrescentados à mão. Datas, vagas e salários mudam com retificações: antes de pagar a inscrição, confira sempre o edital no site da banca. Fichas marcadas com “Confirmar dados” têm alguma informação incerta.</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORE_KEY = "radar-concursos:progresso:v1";
+  var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  var STATUS = [
+    ["", "Minha situação…"],
+    ["olho", "De olho"],
+    ["vou", "Vou me inscrever"],
+    ["inscrita", "Inscrita"],
+    ["estudando", "Estudando"],
+    ["descartado", "Descartado"]
+  ];
+  var STAMP = { olho: "De olho", vou: "Vou fazer", inscrita: "Inscrita", estudando: "Estudando" };
+
+  var state = {
+    concursos: [],
+    meta: null,
+    loaded: false,
+    unavailable: false,
+    open: {},
+    filters: { q: "", sit: "todos", uf: "", minSal: 1621, showUnknown: true, showDiscarded: false, sort: "prazo" }
+  };
+
+  // ---------- progresso (navegador) ----------
+  var memoryProgress = {};
+  function loadProgress() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) memoryProgress = JSON.parse(raw) || {};
+    } catch (e) { /* sem armazenamento: segue só na memória */ }
+  }
+  function saveProgress() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(memoryProgress)); } catch (e) {}
+  }
+  function prog(id) {
+    if (!memoryProgress[id]) memoryProgress[id] = { status: "", materias: {}, nota: "" };
+    return memoryProgress[id];
+  }
+
+  // ---------- datas ----------
+  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function parse(s) {
+    if (!s || typeof s !== "string") return null;
+    var p = s.split("-");
+    if (p.length !== 3) return null;
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return isNaN(d) ? null : d;
+  }
+  function daysUntil(s) {
+    var d = parse(s);
+    if (!d) return null;
+    return Math.round((d - today()) / 86400000);
+  }
+  function fmt(s) {
+    var d = parse(s);
+    if (!d) return "—";
+    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+  }
+  function countText(n) {
+    if (n === null) return "";
+    if (n < 0) return "encerrado";
+    if (n === 0) return "é hoje";
+    if (n === 1) return "amanhã";
+    return "faltam " + n + " dias";
+  }
+  function countClass(n) {
+    if (n === null || n < 0) return "calm";
+    if (n <= 3) return "urgent";
+    if (n <= 10) return "warn";
+    return "calm";
+  }
+  function money(v) {
+    return "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ---------- situação ----------
+  function situacao(c) {
+    if (c.tipo === "previsto") return { key: "previsto", label: c.statusPrevisto ? "Previsto · " + c.statusPrevisto : "Previsto", cls: "planned" };
+    var ini = daysUntil(c.inscricoesInicio), fim = daysUntil(c.inscricoesFim);
+    if (ini !== null && ini > 0) return { key: "breve", label: "Abre em " + fmt(c.inscricoesInicio).slice(0, 5), cls: "soon" };
+    if (fim === null || fim >= 0) return { key: "aberto", label: "Inscrições abertas", cls: "open" };
+    return { key: "encerrado", label: "Inscrições encerradas", cls: "closed" };
+  }
+  function isNew(c) {
+    return !!(state.meta && Array.isArray(state.meta.novos) && state.meta.novos.indexOf(c.id) >= 0);
+  }
+  function nextDate(c) {
+    var cands = [c.inscricoesFim, c.prova].filter(function (s) { var n = daysUntil(s); return n !== null && n >= 0; });
+    var ini = daysUntil(c.inscricoesInicio);
+    if (ini !== null && ini > 0) cands.unshift(c.inscricoesInicio);
+    cands.sort();
+    return cands[0] || "9999-12-31";
+  }
+
+  // ---------- filtros ----------
+  function visible(c) {
+    var f = state.filters, p = prog(c.id), s = situacao(c);
+    if (c.arquivado && !(p.status === "inscrita" || p.status === "estudando")) return false;
+    if (!f.showDiscarded && p.status === "descartado") return false;
+    if (f.sit === "ativos" && !(s.key === "aberto" || s.key === "breve")) return false;
+    if (f.sit === "todos" && s.key === "encerrado" && !(p.status && p.status !== "descartado")) return false;
+    if (f.sit === "previstos" && s.key !== "previsto") return false;
+    if (f.sit === "minha" && !(p.status && p.status !== "descartado")) return false;
+    if (f.uf && c.uf !== f.uf) return false;
+    if (typeof c.salario === "number") {
+      if (c.salario < (f.minSal || 0)) return false;
+    } else if (!f.showUnknown) return false;
+    if (f.q) {
+      var hay = [c.orgao, c.orgaoNome, c.cargo, c.banca, c.uf, c.cidade].join(" ").toLowerCase();
+      if (hay.indexOf(f.q.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+  function sorted(list) {
+    var by = state.filters.sort;
+    return list.slice().sort(function (a, b) {
+      if (by === "salario") return (b.salario || 0) - (a.salario || 0);
+      if (by === "orgao") return String(a.orgao).localeCompare(String(b.orgao), "pt-BR");
+      var pa = situacao(a).key === "previsto" ? 1 : 0, pb = situacao(b).key === "previsto" ? 1 : 0;
+      if (pa !== pb) return pa - pb;
+      if (pa) {
+        var ca = a.uf === "CE" ? 0 : 1, cb = b.uf === "CE" ? 0 : 1;
+        if (ca !== cb) return ca - cb;
+        return (b.salario || 0) - (a.salario || 0);
+      }
+      return nextDate(a) < nextDate(b) ? -1 : nextDate(a) > nextDate(b) ? 1 : 0;
+    });
+  }
+
+  // ---------- render ----------
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") n.className = attrs[k];
+      else if (k === "text") n.textContent = attrs[k];
+      else if (k.indexOf("on") === 0) n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c !== null && c !== undefined) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+
+  function renderUpdateBox() {
+    var box = document.getElementById("updateBox");
+    box.textContent = "";
+    if (state.meta && state.meta.ultimaAtualizacao) {
+      box.appendChild(el("span", null, ["Última atualização: ", el("strong", { text: fmt(state.meta.ultimaAtualizacao) })]));
+      if (state.meta.proximaAtualizacao) box.appendChild(el("span", { text: "Próxima: " + fmt(state.meta.proximaAtualizacao) }));
+    } else {
+      box.appendChild(el("span", { text: "Lista atualizada toda segunda-feira" }));
+    }
+    var news = document.getElementById("news");
+    if (state.meta && state.meta.resumo) {
+      document.getElementById("newsText").textContent = state.meta.resumo;
+      news.hidden = false;
+    } else news.hidden = true;
+  }
+
+  function renderUfs() {
+    var sel = document.getElementById("uf"), cur = sel.value;
+    var ufs = {};
+    state.concursos.forEach(function (c) { if (c.uf && !c.arquivado) ufs[c.uf] = true; });
+    var keys = Object.keys(ufs).sort();
+    sel.textContent = "";
+    sel.appendChild(el("option", { value: "", text: "Ceará e nacionais" }));
+    keys.forEach(function (u) { sel.appendChild(el("option", { value: u, text: u === "BR" ? "Só nacionais" : u === "CE" ? "Só Ceará" : u })); });
+    sel.value = keys.indexOf(cur) >= 0 ? cur : "";
+  }
+
+  function renderDeadlines() {
+    var ul = document.getElementById("deadlines");
+    ul.textContent = "";
+    var ev = [];
+    state.concursos.forEach(function (c) {
+      var p = prog(c.id);
+      if (p.status === "descartado" || c.arquivado || c.tipo === "previsto") return;
+      var mine = !!p.status;
+      var s = situacao(c);
+      if (s.key === "breve") ev.push({ d: c.inscricoesInicio, t: "Abrem as inscrições", c: c, mine: mine });
+      if (c.inscricoesFim && !(p.status === "inscrita" || p.status === "estudando")) ev.push({ d: c.inscricoesFim, t: "Fim das inscrições", c: c, mine: mine });
+      if (c.pagamentoAte && p.status === "inscrita") ev.push({ d: c.pagamentoAte, t: "Pagar o boleto", c: c, mine: true });
+      if (c.prova) ev.push({ d: c.prova, t: "Prova", c: c, mine: mine });
+    });
+    ev = ev.filter(function (e) { var n = daysUntil(e.d); return n !== null && n >= 0; });
+    ev.sort(function (a, b) {
+      if (a.d !== b.d) return a.d < b.d ? -1 : 1;
+      return (b.mine ? 1 : 0) - (a.mine ? 1 : 0);
+    });
+    var anyMine = ev.some(function (e) { return e.mine; });
+    if (anyMine) ev = ev.filter(function (e) { return e.mine; }).concat(ev.filter(function (e) { return !e.mine; }));
+    ev = ev.slice(0, 6);
+    if (anyMine) ev.sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
+    document.getElementById("deadlinesEmpty").hidden = ev.length > 0 || !state.loaded;
+    ev.forEach(function (e) {
+      var d = parse(e.d), n = daysUntil(e.d);
+      ul.appendChild(el("li", null, [
+        el("div", { class: "cal", "aria-hidden": "true" }, [
+          el("span", { class: "m", text: MESES[d.getMonth()] }),
+          el("span", { class: "d", text: String(d.getDate()) })
+        ]),
+        el("div", { class: "what" }, [
+          el("b", { text: e.c.orgao + " · " + e.t }),
+          el("span", { class: "count " + countClass(n), text: countText(n) }),
+          el("span", { text: " · " + fmt(e.d) })
+        ])
+      ]));
+    });
+  }
+
+  function ficha(c) {
+    var p = prog(c.id), s = situacao(c);
+    var mats = Array.isArray(c.materias) ? c.materias : [];
+    var doneCount = mats.filter(function (m) { return p.materias[m]; }).length;
+
+    var chips = el("div", { class: "chips" }, [
+      el("span", { class: "chip", text: c.uf === "BR" ? "Nacional" : (c.cidade ? c.cidade + " · " + c.uf : c.uf || "—") }),
+      el("span", { class: "chip " + s.cls, text: s.label }),
+      isNew(c) ? el("span", { class: "chip new", text: "Novo" }) : null,
+      c.conferir ? el("span", { class: "chip check", text: "Confirmar dados" }) : null
+    ]);
+
+    var salario = typeof c.salario === "number"
+      ? el("span", { class: "money" }, [money(c.salario), c.salarioObs ? el("small", { text: " " + c.salarioObs }) : null])
+      : el("span", { class: "money" }, ["a confirmar", c.salarioObs ? el("small", { text: " " + c.salarioObs }) : null]);
+
+    var facts = el("div", { class: "facts" }, [
+      el("span", null, ["Vagas: ", el("b", { text: c.vagas || "—" })]),
+      el("span", null, ["Banca: ", el("b", { text: c.banca || "a definir" })])
+    ]);
+
+    var who = el("div", { class: "who" }, [
+      chips,
+      el("h3", { text: c.orgaoNome && c.orgaoNome !== c.orgao ? c.orgao + " — " + c.orgaoNome : c.orgao }),
+      el("p", { class: "cargo", text: c.cargo }),
+      salario,
+      facts
+    ]);
+
+    var when = el("div", { class: "when" });
+    if (c.tipo === "previsto") {
+      when.appendChild(el("div", { class: "row" }, ["Edital: ", el("b", { text: c.previsao || "sem data" })]));
+    } else {
+      var ini = daysUntil(c.inscricoesInicio);
+      if (ini !== null && ini > 0) {
+        when.appendChild(el("div", { class: "row" }, ["Inscrições abrem ", el("b", { text: fmt(c.inscricoesInicio) })]));
+      }
+      var nf = daysUntil(c.inscricoesFim);
+      when.appendChild(el("div", { class: "row" }, [
+        "Inscrições até ", el("b", { text: fmt(c.inscricoesFim) }), " ",
+        el("span", { class: "count " + countClass(nf), text: countText(nf) })
+      ]));
+      when.appendChild(el("div", { class: "row" }, ["Prova: ", el("b", { text: c.prova ? fmt(c.prova) : (c.provaObs || "a definir") })]));
+    }
+    var sel = el("select", { "aria-label": "Minha situação neste concurso", id: "st-" + c.id, onchange: function (e) {
+      prog(c.id).status = e.target.value; saveProgress(); render();
+    } });
+    STATUS.forEach(function (o) { var op = el("option", { value: o[0], text: o[1] }); if (o[0] === p.status) op.selected = true; sel.appendChild(op); });
+    when.appendChild(el("div", { class: "mine" }, [sel]));
+    if (STAMP[p.status]) when.appendChild(el("span", { class: "stamp", "aria-hidden": "true", text: STAMP[p.status] }));
+
+    var card = el("article", { class: "ficha" + (p.status === "descartado" ? " discarded" : ""), id: "c-" + c.id }, [
+      el("div", { class: "top" }, [who, when])
+    ]);
+    if (c.alerta) card.appendChild(el("p", { class: "alert", text: c.alerta }));
+
+    var isOpen = !!state.open[c.id];
+    var toggle = el("button", { type: "button", class: "toggle", "aria-expanded": isOpen ? "true" : "false", onclick: function () {
+      state.open[c.id] = !state.open[c.id]; render();
+    } }, [
+      el("span", { text: isOpen ? "Fechar detalhes" : "Ver detalhes, matérias e anotações" }),
+      mats.length ? el("span", { class: "prog", text: doneCount + "/" + mats.length + " matérias" }) : null
+    ]);
+    card.appendChild(toggle);
+
+    if (isOpen) {
+      var kv = el("dl", { class: "kv" });
+      function row(k, v) { if (v) { kv.appendChild(el("dt", { text: k })); kv.appendChild(el("dd", { text: v })); } }
+      if (c.tipo !== "previsto") {
+        row("Inscrições", (c.inscricoesInicio ? fmt(c.inscricoesInicio) + " a " : "até ") + fmt(c.inscricoesFim));
+        row("Pagar boleto até", c.pagamentoAte ? fmt(c.pagamentoAte) : "");
+        row("Prova", c.prova ? fmt(c.prova) + (c.provaObs ? " · " + c.provaObs : "") : (c.provaObs || "a definir"));
+      } else {
+        row("Situação", c.statusPrevisto || "previsto");
+        row("Previsão", c.previsao || "");
+      }
+      row("Taxa", typeof c.taxa === "number" ? money(c.taxa) : "");
+      row("Regime", c.regime || "");
+      row("Jornada", c.jornada || "");
+      row("Atualizado em", c.atualizadoEm ? fmt(c.atualizadoEm) : "");
+
+      var left = el("div", null, [el("h4", { text: "Dados do concurso" }), kv]);
+      if (c.observacao) left.appendChild(el("p", { class: "obs", text: c.observacao }));
+      var links = el("div", { class: "links" });
+      if (c.link) links.appendChild(el("a", { href: c.link, target: "_blank", rel: "noopener", text: "Site da banca / edital ↗" }));
+      if (c.fonte) links.appendChild(el("a", { href: c.fonte, target: "_blank", rel: "noopener", text: "Notícia de origem ↗" }));
+      left.appendChild(links);
+
+      var right = el("div");
+      right.appendChild(el("h4", { text: "Matérias para estudar" }));
+      if (mats.length) {
+        var pct = Math.round(doneCount / mats.length * 100);
+        right.appendChild(el("div", { class: "bar", role: "img", "aria-label": pct + "% das matérias estudadas" }, [el("i", { style: "width:" + pct + "%" })]));
+        var ul = el("ul", { class: "materias" });
+        mats.forEach(function (m, i) {
+          var cb = el("input", { type: "checkbox", id: "m-" + c.id + "-" + i, onchange: function (e) {
+            if (e.target.checked) prog(c.id).materias[m] = true; else delete prog(c.id).materias[m];
+            saveProgress(); render();
+          } });
+          cb.checked = !!p.materias[m];
+          ul.appendChild(el("li", { class: p.materias[m] ? "done" : "" }, [el("label", { for: cb.id }, [cb, el("span", { text: m })])]));
+        });
+        right.appendChild(ul);
+        right.appendChild(el("p", { class: "hint", text: c.materiasFonte === "edital"
+          ? "Matérias tiradas do edital."
+          : "Matérias que costumam cair nesse tipo de prova. Confira o conteúdo programático no edital." }));
+      } else {
+        right.appendChild(el("p", { class: "hint", text: "As matérias aparecem aqui quando o edital sair." }));
+      }
+
+      var ta = el("textarea", { id: "n-" + c.id, placeholder: "Ex.: boleto pago, local de prova, material que comprei…" });
+      ta.value = p.nota || "";
+      var t;
+      ta.addEventListener("input", function () {
+        clearTimeout(t);
+        t = setTimeout(function () { prog(c.id).nota = ta.value; saveProgress(); }, 400);
+      });
+      var notes = el("div", { class: "notes full field" }, [el("label", { for: ta.id, text: "Minhas anotações" }), ta]);
+
+      card.appendChild(el("div", { class: "detail" }, [left, right, notes]));
+    }
+    return card;
+  }
+
+  function render() {
+    renderUpdateBox();
+    renderDeadlines();
+    var list = document.getElementById("list");
+    var focusedId = document.activeElement && document.activeElement.id;
+    list.textContent = "";
+    var res = document.getElementById("result");
+
+    if (!state.loaded) {
+      res.textContent = state.unavailable ? "Lista indisponível" : "Carregando concursos…";
+      list.appendChild(el("div", { class: "state" }, state.unavailable ? [
+        el("h3", { text: "Não consegui carregar a lista" }),
+        el("p", { text: "Confira a internet e recarregue a página. Se continuar assim, a atualização da semana pode ter falhado." })
+      ] : [
+        el("h3", { text: "Buscando a lista de concursos" }),
+        el("p", { text: "Os concursos abertos, os que abrem em breve e os previstos aparecem aqui em instantes." })
+      ]));
+      return;
+    }
+
+    var vis = sorted(state.concursos.filter(visible));
+    res.textContent = "";
+    res.appendChild(el("b", { text: String(vis.length) }));
+    res.appendChild(document.createTextNode(vis.length === 1 ? " concurso" : " concursos"));
+
+    if (!state.concursos.length) {
+      list.appendChild(el("div", { class: "state" }, [
+        el("h3", { text: "A lista ainda está vazia" }),
+        el("p", { text: "Os concursos entram aqui na próxima atualização semanal, toda segunda-feira." })
+      ]));
+    } else if (!vis.length) {
+      var sit = state.filters.sit;
+      list.appendChild(el("div", { class: "state" }, [
+        el("h3", { text: sit === "ativos" ? "Nenhuma inscrição aberta agora" : "Nenhum concurso com esses filtros" }),
+        el("p", { text: sit === "minha"
+          ? "Use o campo “Minha situação” em um concurso para colocá-lo na sua lista."
+          : sit === "ativos"
+            ? "Os concursos que devem sair estão em “Previstos”. Quando um edital for publicado, ele aparece aqui."
+            : "Tente um salário mínimo menor ou a opção “Todos”." })
+      ]));
+    } else {
+      var wrap = el("div", { style: "display:grid;gap:14px" });
+      vis.forEach(function (c) { wrap.appendChild(ficha(c)); });
+      list.appendChild(wrap);
+    }
+    if (focusedId) { var f = document.getElementById(focusedId); if (f && f !== document.activeElement) f.focus(); }
+  }
+
+  // ---------- controles ----------
+  function bindControls() {
+    var q = document.getElementById("q"), t;
+    q.addEventListener("input", function () { clearTimeout(t); t = setTimeout(function () { state.filters.q = q.value.trim(); render(); }, 150); });
+    document.querySelectorAll("#sitGroup button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.filters.sit = b.getAttribute("data-sit");
+        document.querySelectorAll("#sitGroup button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+        render();
+      });
+    });
+    document.getElementById("uf").addEventListener("change", function (e) { state.filters.uf = e.target.value; render(); });
+    document.getElementById("minSal").addEventListener("input", function (e) { state.filters.minSal = Number(e.target.value) || 0; render(); });
+    document.getElementById("showUnknown").addEventListener("change", function (e) { state.filters.showUnknown = e.target.checked; render(); });
+    document.getElementById("showDiscarded").addEventListener("change", function (e) { state.filters.showDiscarded = e.target.checked; render(); });
+    document.getElementById("sort").addEventListener("change", function (e) { state.filters.sort = e.target.value; render(); });
+
+    var msg = document.getElementById("backupMsg");
+    document.getElementById("copyBackup").addEventListener("click", function () {
+      var text = JSON.stringify({ radarConcursos: 1, salvoEm: new Date().toISOString(), progresso: memoryProgress });
+      var fb = document.getElementById("backupFallback");
+      function fallback() {
+        fb.hidden = false; fb.value = text; fb.focus(); fb.select();
+        msg.textContent = "Selecionei o texto: copie com Ctrl+C e guarde num bloco de notas.";
+      }
+      try {
+        navigator.clipboard.writeText(text).then(function () {
+          fb.hidden = true;
+          msg.textContent = "Backup copiado. Cole num bloco de notas ou no e-mail para guardar.";
+        }, fallback);
+      } catch (e) { fallback(); }
+    });
+    document.getElementById("openRestore").addEventListener("click", function () {
+      var box = document.getElementById("restoreBox");
+      box.hidden = !box.hidden;
+      if (!box.hidden) document.getElementById("restoreText").focus();
+    });
+    document.getElementById("doRestore").addEventListener("click", function () {
+      var raw = document.getElementById("restoreText").value.trim();
+      try {
+        var obj = JSON.parse(raw);
+        if (!obj || typeof obj.progresso !== "object") throw new Error("formato");
+        memoryProgress = obj.progresso || {};
+        saveProgress();
+        document.getElementById("restoreBox").hidden = true;
+        document.getElementById("restoreText").value = "";
+        msg.textContent = "Progresso restaurado.";
+        render();
+      } catch (e) {
+        msg.textContent = "Esse texto não é um backup do Radar. Cole o texto inteiro, do primeiro { ao último }.";
+      }
+    });
+  }
+
+  // ---------- dados ----------
+  async function connect() {
+    try {
+      var r = await Promise.all([
+        fetch("dados/concursos.json", { cache: "no-store" }),
+        fetch("dados/meta.json", { cache: "no-store" })
+      ]);
+      if (!r[0].ok) throw new Error("lista " + r[0].status);
+      state.concursos = await r[0].json();
+      state.meta = r[1].ok ? await r[1].json() : null;
+      state.loaded = true;
+      renderUfs();
+    } catch (e) {
+      state.unavailable = true;
+    }
+    render();
+  }
+
+  loadProgress();
+  bindControls();
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>
