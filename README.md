@@ -6,7 +6,7 @@ Painel de concursos administrativos de nível médio do Ceará e nacionais.
 
 ## Como funciona
 
-Toda segunda às 8h (horário de Fortaleza) o GitHub roda `scripts/atualizar.py` de graça:
+Todo dia às 8h (horário de Fortaleza) o GitHub roda `scripts/atualizar.py` de graça:
 
 1. Lê os concursos abertos do Ceará e os nacionais no [PCI Concursos](https://www.pciconcursos.com.br/concursos/nordeste/#CE).
 2. Abre a notícia de cada concurso que aceita nível médio e procura cargos administrativos
@@ -46,8 +46,8 @@ Para tirar um concurso do painel sem apagar, troque `"arquivado": false` por `"a
 
 ## Se a atualização falhar
 
-O GitHub manda um e-mail quando a execução de segunda falha. O motivo mais comum é o PCI Concursos ter mudado o layout da página.
-O site continua no ar com a lista da semana anterior. Para consertar, cole a mensagem de erro (aba Actions) e o arquivo
+O GitHub manda um e-mail quando a execução do dia falha. O motivo mais comum é o PCI Concursos ter mudado o layout da página.
+O site continua no ar com a lista do último dia que deu certo. Para consertar, cole a mensagem de erro (aba Actions) e o arquivo
 `scripts/atualizar.py` numa conversa com o Claude e peça o ajuste.
 
 ## Testar no computador

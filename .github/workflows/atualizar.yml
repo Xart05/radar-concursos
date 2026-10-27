@@ -2,7 +2,7 @@ name: Atualizar concursos
 
 on:
   schedule:
-    - cron: "0 11 * * 1" # toda segunda às 8h de Fortaleza (11h UTC)
+    - cron: "0 11 * * *" # todo dia às 8h de Fortaleza (11h UTC)
   workflow_dispatch: # botão "Run workflow" na aba Actions
   push:
     branches: [main] # publica o site quando alguém edita os arquivos

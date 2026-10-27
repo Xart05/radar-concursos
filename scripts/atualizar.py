@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Atualiza a lista do Radar de Concursos a partir do PCI Concursos.
 
-Roda toda segunda pelo GitHub Actions (veja .github/workflows/atualizar.yml).
+Roda todo dia pelo GitHub Actions (veja .github/workflows/atualizar.yml).
 Lê os concursos abertos do Ceará e os nacionais, abre a notícia de cada um e
 guarda os que têm cargo administrativo de nível médio.
 
@@ -35,9 +35,10 @@ FONTES = [
     ("https://www.pciconcursos.com.br/concursos/nordeste/", "CE"),
     ("https://www.pciconcursos.com.br/concursos/nacional/", "NACIONAL"),
 ]
-USER_AGENT = "RadarConcursos/1.0 (uso pessoal; uma busca por semana)"
+USER_AGENT = "RadarConcursos/1.0 (uso pessoal; uma busca por dia)"
 PAUSA = 2.0  # segundos entre requisições, para não sobrecarregar o site
 SALARIO_MIN_NACIONAL = 2500
+DIAS_NOVO = 7  # dias que um concurso fica com a etiqueta "Novo"
 FUSO = timezone(timedelta(hours=-3))  # Fortaleza
 
 # Cargos administrativos procurados no texto da notícia (sem acento, minúsculo).
@@ -451,10 +452,10 @@ def resumo(concursos, novos, mudados, dia):
     partes = []
     if novos:
         nomes = ", ".join(c["orgao"] for c in novos[:4]) + (" e outros" if len(novos) > 4 else "")
-        verbo, plural = ("Entraram", "s") if len(novos) > 1 else ("Entrou", "")
-        partes.append(f"{verbo} {len(novos)} concurso{plural}: {nomes}.")
+        verbo, plural = ("entraram", "s") if len(novos) > 1 else ("entrou", "")
+        partes.append(f"Nos últimos {DIAS_NOVO} dias {verbo} {len(novos)} concurso{plural}: {nomes}.")
     else:
-        partes.append("Nenhum concurso novo nesta semana.")
+        partes.append(f"Nenhum concurso novo nos últimos {DIAS_NOVO} dias.")
     if mudados:
         partes.append("Prazo atualizado: " + ", ".join(f"{c['orgao']} ({fmt(c['inscricoesFim'])})" for c in mudados[:3]) + ".")
     fechando = sorted(
@@ -468,15 +469,21 @@ def resumo(concursos, novos, mudados, dia):
     return " ".join(partes)
 
 
-def novos_da_semana(concursos, novos, dia):
-    """Soma os novos desta execução aos de outra execução na mesma semana,
-    para que rodar de novo no meio da semana não apague a etiqueta "Novo"."""
-    ids = {c["id"] for c in novos}
+def novos_recentes(concursos, novos, dia):
+    """Concursos que entraram nos últimos DIAS_NOVO dias e o dia em que cada um entrou.
+
+    A data fica no meta.json, e não no adicionadoEm do concurso, porque os
+    concursos colocados à mão no começo também têm adicionadoEm recente."""
+    desde = {}
     if ARQ_META.exists():
         anterior = json.loads(ARQ_META.read_text(encoding="utf-8"))
-        if iso(dia) < anterior.get("proximaAtualizacao", ""):
-            ids.update(anterior.get("novos", []))
-    return [c for c in concursos if c["id"] in ids and not c.get("arquivado")]
+        desde = anterior.get("novosDesde") or {i: anterior["ultimaAtualizacao"] for i in anterior.get("novos", [])}
+    for c in novos:
+        desde[c["id"]] = iso(dia)
+    ativos = {c["id"] for c in concursos if not c.get("arquivado")}
+    desde = {i: d for i, d in desde.items()
+             if i in ativos and (dia - date.fromisoformat(d)).days < DIAS_NOVO}
+    return [c for c in concursos if c["id"] in desde], desde
 
 
 def main():
@@ -486,13 +493,13 @@ def main():
     achados = buscar()
     novos, mudados = juntar(concursos, achados, dia)
     arquivados = arquivar(concursos, dia)
-    semana = novos_da_semana(concursos, novos, dia)
-    proxima = dia + timedelta(days=(7 - dia.weekday()) % 7 or 7)
+    recentes, desde = novos_recentes(concursos, novos, dia)
     meta = {
         "ultimaAtualizacao": iso(dia),
-        "proximaAtualizacao": iso(proxima),
-        "novos": [c["id"] for c in semana],
-        "resumo": resumo(concursos, semana, mudados, dia),
+        "proximaAtualizacao": iso(dia + timedelta(days=1)),
+        "novos": [c["id"] for c in recentes],
+        "novosDesde": desde,
+        "resumo": resumo(concursos, recentes, mudados, dia),
         "fonte": "PCI Concursos",
     }
     print(f"\nNovos: {len(novos)} · prazos mudados: {len(mudados)} · arquivados: {len(arquivados)}")

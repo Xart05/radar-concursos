@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Radar de Concursos</title>
-<meta name="description" content="Concursos administrativos de nível médio do Ceará e nacionais, atualizados toda segunda.">
+<meta name="description" content="Concursos administrativos de nível médio do Ceará e nacionais, atualizados todo dia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -201,12 +201,12 @@ a { color: var(--accent); }
       <p class="sub">Concursos de nível médio na área administrativa: do Ceará a partir de R$ 1.621 e nacionais a partir de R$ 2.500. Concursos de banco ficam de fora.</p>
     </div>
     <div class="update-box" id="updateBox">
-      <span>Lista atualizada toda segunda-feira</span>
+      <span>Lista atualizada todo dia</span>
     </div>
   </header>
 
   <section class="news" id="news" hidden>
-    <span class="label">Novidades da semana</span>
+    <span class="label">Novidades</span>
     <p id="newsText"></p>
   </section>
 
@@ -277,7 +277,7 @@ a { color: var(--accent); }
     </main>
   </div>
 
-  <p class="foot">A lista se atualiza sozinha toda segunda, a partir do <a href="https://www.pciconcursos.com.br/concursos/nordeste/#CE" target="_blank" rel="noopener">PCI Concursos</a>. Concursos previstos são acrescentados à mão. Datas, vagas e salários mudam com retificações: antes de pagar a inscrição, confira sempre o edital no site da banca. Fichas marcadas com “Confirmar dados” têm alguma informação incerta.</p>
+  <p class="foot">A lista se atualiza sozinha todo dia de manhã, a partir do <a href="https://www.pciconcursos.com.br/concursos/nordeste/#CE" target="_blank" rel="noopener">PCI Concursos</a>. Concursos previstos são acrescentados à mão. Datas, vagas e salários mudam com retificações: antes de pagar a inscrição, confira sempre o edital no site da banca. Fichas marcadas com “Confirmar dados” têm alguma informação incerta.</p>
 </div>
 
 <script>
@@ -431,7 +431,7 @@ a { color: var(--accent); }
       box.appendChild(el("span", null, ["Última atualização: ", el("strong", { text: fmt(state.meta.ultimaAtualizacao) })]));
       if (state.meta.proximaAtualizacao) box.appendChild(el("span", { text: "Próxima: " + fmt(state.meta.proximaAtualizacao) }));
     } else {
-      box.appendChild(el("span", { text: "Lista atualizada toda segunda-feira" }));
+      box.appendChild(el("span", { text: "Lista atualizada todo dia" }));
     }
     var news = document.getElementById("news");
     if (state.meta && state.meta.resumo) {
@@ -627,7 +627,7 @@ a { color: var(--accent); }
       res.textContent = state.unavailable ? "Lista indisponível" : "Carregando concursos…";
       list.appendChild(el("div", { class: "state" }, state.unavailable ? [
         el("h3", { text: "Não consegui carregar a lista" }),
-        el("p", { text: "Confira a internet e recarregue a página. Se continuar assim, a atualização da semana pode ter falhado." })
+        el("p", { text: "Confira a internet e recarregue a página. Se continuar assim, a última atualização pode ter falhado." })
       ] : [
         el("h3", { text: "Buscando a lista de concursos" }),
         el("p", { text: "Os concursos abertos, os que abrem em breve e os previstos aparecem aqui em instantes." })
@@ -643,7 +643,7 @@ a { color: var(--accent); }
     if (!state.concursos.length) {
       list.appendChild(el("div", { class: "state" }, [
         el("h3", { text: "A lista ainda está vazia" }),
-        el("p", { text: "Os concursos entram aqui na próxima atualização semanal, toda segunda-feira." })
+        el("p", { text: "Os concursos entram aqui na próxima atualização, que roda todo dia de manhã." })
       ]));
     } else if (!vis.length) {
       var sit = state.filters.sit;
