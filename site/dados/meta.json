@@ -1,12 +1,14 @@
 {
- "ultimaAtualizacao": "2026-10-30",
- "proximaAtualizacao": "2026-10-31",
+ "ultimaAtualizacao": "2026-10-31",
+ "proximaAtualizacao": "2026-11-01",
  "novos": [
-  "pci-prefeitura-de-jaguaribe-2026"
+  "pci-prefeitura-de-jaguaribe-2026",
+  "pci-camara-de-camocim-2026"
  ],
  "novosDesde": {
-  "pci-prefeitura-de-jaguaribe-2026": "2026-10-27"
+  "pci-prefeitura-de-jaguaribe-2026": "2026-10-27",
+  "pci-camara-de-camocim-2026": "2026-10-31"
  },
- "resumo": "Nos últimos 7 dias entrou 1 concurso: Prefeitura de Jaguaribe. Terminam nos próximos 7 dias: Câmara de São Benedito (30/10), Prefeitura de Ubajara (01/11).",
+ "resumo": "Nos últimos 7 dias entraram 2 concursos: Prefeitura de Jaguaribe, Câmara de Camocim. Terminam nos próximos 7 dias: Prefeitura de Ubajara (01/11).",
  "fonte": "PCI Concursos"
 }
