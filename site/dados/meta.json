@@ -1,8 +1,12 @@
 {
- "ultimaAtualizacao": "2026-11-25",
- "proximaAtualizacao": "2026-11-26",
- "novos": [],
- "novosDesde": {},
- "resumo": "Nenhum concurso novo nos últimos 7 dias. Terminam nos próximos 7 dias: Câmara de Croatá (27/11).",
+ "ultimaAtualizacao": "2026-11-26",
+ "proximaAtualizacao": "2026-11-27",
+ "novos": [
+  "pci-camara-de-banabuiu-2026"
+ ],
+ "novosDesde": {
+  "pci-camara-de-banabuiu-2026": "2026-11-26"
+ },
+ "resumo": "Nos últimos 7 dias entrou 1 concurso: Câmara de Banabuiú. Terminam nos próximos 7 dias: Câmara de Croatá (27/11).",
  "fonte": "PCI Concursos"
 }
